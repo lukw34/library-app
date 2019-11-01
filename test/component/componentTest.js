@@ -7,20 +7,6 @@ describe("Book inventory", function() {
         const db = await connection();
         const request = httpClient(app(db));
 
-        for(let i = 100 ; i < 200; ++i) {
-
-            const createResult = await request
-                .post('/book')
-                .send({
-                    title: "JavaScript in Action",
-                    authors: ["James Smith", "Kate Donovan"],
-                    isbn: `0123456${i}`,
-                    description: "The ultimate JS book!"
-                })
-                .set('Content-Type', 'application/json')
-                .expect(302);
-        }
-
         const createResult = await request
             .post('/book')
             .send({
