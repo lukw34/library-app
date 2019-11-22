@@ -1,23 +1,38 @@
-module.exports = (db) => {
+module.exports = async (db) => {
     const express = require('express');
+    const next = require('next');
+
+    const dev = process.env.NODE_ENV !== 'production';
+    const app = next({ dev });
+
+    const handle = app.getRequestHandler();
+
     const booksRepository = require('./books/booksRepository')(db);
     const booksController = require('./books/booksController')({ booksRepository });
     const booksRoutes = require('./books/routes')(booksController);
 
-    const app = express();
+    const server = express();
 
     const {clientError, errorHandler} = require('./error');
 
-    app.use(express.json());
+    await app.prepare();
 
-    app.get('/healthcheck', function (req, res) {
+    server.use(express.json());
+
+
+    server.get('/healthcheck', function (req, res) {
         res.send('Health Check !');
     });
 
-    app.use('/books', booksRoutes);
+    server.use('api/books', booksRoutes);
 
-    app.use(clientError);
-    app.use(errorHandler);
+    server.get('*', (req, res) => {
+        return handle(req, res)
+    });
 
-    return app;
+    server.use(clientError);
+    server.use(errorHandler);
+
+
+    return server;
 };
